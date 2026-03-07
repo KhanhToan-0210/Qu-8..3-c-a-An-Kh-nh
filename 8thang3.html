@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quà tặng 8/3 - Bò tặng An Khánh</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background: #ffe6e6;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh;
+        }
+
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #de90c0;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000;
+            transition: transform 0.8s ease-in-out, opacity 0.5s;
+        }
+
+        #overlay h2 { color: white; font-size: 1.8rem; margin-bottom: 30px; text-align: center; padding: 0 20px; }
+
+        .open-btn {
+            padding: 15px 40px; font-size: 1.5rem; background-color: #fff;
+            color: #ff4d4d; border: none; border-radius: 50px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-weight: bold; transition: 0.3s;
+        }
+
+        .container {
+            text-align: center; background: rgba(255, 255, 255, 0.9);
+            padding: 30px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 400px; width: 90%; z-index: 5;
+        }
+
+        h1 { color: #ff4d4d; margin-top: 0; }
+        
+        /* Slide ảnh */
+        .photo-frame {
+            width: 250px; height: 250px;
+            margin: 15px auto; border: 8px solid white;
+            border-radius: 10px; overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .photo-frame img {
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; left: 0; top: 0;
+            opacity: 0; transition: opacity 1s ease-in-out;
+        }
+        .photo-frame img.active { opacity: 1; }
+
+        /* Hiệu ứng gõ chữ */
+        #typing-text {
+            font-size: 1.1rem; color: #555; line-height: 1.5;
+            min-height: 100px; padding: 0 10px;
+        }
+
+        /* Nút trêu chọc */
+        #troll-btn {
+            position: absolute; padding: 8px 15px;
+            background: #ff4d4d; color: white;
+            border: none; border-radius: 5px;
+            cursor: pointer; transition: 0.1s;
+            z-index: 100;
+        }
+
+        .heart { position: absolute; top: -10px; color: #ff4d4d; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="player" style="display:none"></div>
+
+    <div id="overlay">
+        <h2>🎁 Quà mùng 8.3 của Bò tặng An Khánh 🎁</h2>
+        <button class="open-btn" onclick="openGift()">Mở quà</button>
+    </div>
+
+    <button id="troll-btn" onmouseover="moveButton()" onclick="trollClick()">Đừng bấm vào đây!</button>
+
+    <div class="container">
+        <h1>Happy Women's Day! 🌹</h1>
+        
+        <div class="photo-frame" id="slideshow">
+            <img src="https://i.ibb.co/k21HD18h/z7597652389534-20dd2cfddb2ca3dcf6dc9cb4e5555cf7.jpg" class="active">
+            <img src="https://i.ibb.co/pBF8h84v/z7597712870096-b801d956106cc136305f4405d72b2929.jpg">
+            <img src="https://i.ibb.co/JRcHHvsD/z7597712867760-da0cbb9348167d55904aa7d68841500e.jpg">
+        </div>
+
+        <div id="typing-text"></div>
+        <p style="font-weight: bold; color: #ff4d4d;">Tớ yêu cậu nhiều! ❤️</p>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        // 1. Cấu hình Nhạc
+        let player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '0',
+                width: '0',
+                videoId: '_G7rWnc8z_o', // Thay bằng ID video bạn muốn
+                playerVars: {
+                    'autoplay': 0,
+                    'controls': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1,
+                    'loop': 1,
+                    'playlist': '_G7rWnc8z_o' // Cần thiết để
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+        function onPlayerReady(event) {
+            event.target.setVolume(50); // điều chỉnh âm lượng
+        }
+        function openGift() {
+            const overlay = document.getElementById('overlay');
+            overlay.style.transform = 'translateY(-100%)';
+            overlay.style.opacity = '0';
+
+            if(player && player.playVideo){
+                player.unMute();
+                player.playVideo();
+           }
+           confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            setTimeout(typeWriter, 1000);
+            setInterval(nextSlide, 3000);
+            setInterval(createHeart, 300);
+        }
+        
+
+        // 2. Cấu hình Slide ảnh
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('#slideshow img');
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+
+        // 3. Hiệu ứng Gõ chữ
+        const message = "Nhân ngày mùng 8/3 chúc An Khánh ngày càng xinh đẹp, vui vẻ, có thật nhiều sức khỏe. Chúc cậu kỳ nào cũng đạt được sinh viên giỏi và cùng Khánh Toàn yêu thương nhau thật nhiều nhé! 🌸";
+        let index = 0;
+        function typeWriter() {
+            if (index < message.length) {
+                document.getElementById("typing-text").innerHTML += message.charAt(index);
+                index++;
+                setTimeout(typeWriter, 60);
+            }
+        }
+
+        // 4. Hàm Mở Quà chính
+        function openGift() {
+            const overlay = document.getElementById('overlay');
+            overlay.style.transform = 'translateY(-100%)';
+            overlay.style.opacity = '0';
+
+            // Pháo hoa
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+            // Phát nhạc
+            if(player) player.playVideo();
+
+            // Chạy hiệu ứng
+            setTimeout(typeWriter, 1000);
+            setInterval(nextSlide, 3000);
+            setInterval(createHeart, 300);
+        }
+
+        // 5. Tim rơi
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 3 + 2 + 's';
+            heart.style.fontSize = Math.random() * 20 + 10 + 'px';
+            document.body.appendChild(heart);
+            setTimeout(() => { heart.remove(); }, 5000);
+        }
+
+        // 6. Nút bấm trêu chọc
+        let moveCount = 0;
+        function moveButton() {
+            const btn = document.getElementById('troll-btn');
+            moveCount++;
+            
+            if (moveCount > 10) {
+                btn.style.transition = "0.5s";
+                btn.style.background= "#4CAF50";
+                btn.innerHTML= "Không trêu cậu nữa, cho cậu bấm nè!";
+                return;
+            }
+            const speed = 0.1 + (moveCount*0.05);
+
+            const x = Math.random() * (window.innerWidth - btn.offsetWidth);
+            const y = Math.random() * (window.innerHeight - btn.offsetHeight);
+            
+            btn.style.left = x + 'px';
+            btn.style.top = y + 'px';
+        }
+        function trollClick() {
+            const btn = document.getElementById('troll-btn');
+            confetti({ 
+                particleCount: 100, 
+                spread: 70, 
+                origin: { 
+                    x: btn.offsetLeft / window.innerWidth,
+                    y: btn.offsetTop / window.innerHeight
+                }
+            });
+            btn.innerHTML = "Cậu thắng rồi! ❤️";
+            btn.style.background = "ff14993";
+            
+            setTimeout(() => {
+                alert("An Khánh ơi, tớ yêu cậu nhiều lắm, mình cố gắng vì nhau để chúng mình đi với nhau đến già nhé");
+                btn.style.display = "none";
+            }, 500);
+
+        }
+    </script>
+</body>
+</html>
